@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os.path
+import urllib.request
+
+_HERE = os.path.join(os.path.dirname(__file__), '..')
+
+
+def _replace_args(**kwargs: str) -> None:
+    fname = os.path.join(_HERE, 'Dockerfile')
+
+    with open(fname) as f:
+        lines = list(f)
+
+    for i, line in enumerate(lines):
+        if line.startswith('ARG '):
+            before, _, after = line.rstrip().partition('=')
+            varname = before.removeprefix('ARG ')
+            if varname in kwargs:
+                val = kwargs.pop(varname)
+                if after == val:
+                    print(f'{varname}: up to date!')
+                else:
+                    print(f'{varname}: {after} => {val}')
+                    lines[i] = f'ARG {varname}={val}\n'
+
+    if kwargs:
+        raise AssertionError(f'unmatched: {sorted(kwargs)}')
+
+    with open(fname, 'w') as f:
+        f.writelines(lines)
+
+
+def _update_node() -> int:
+    req = urllib.request.urlopen('https://nodejs.org/dist/index.json')
+    resp = json.load(req)
+
+    target = next(d for d in resp if d['lts'])
+    node = target['version']
+
+    url = f'https://nodejs.org/dist/{node}/node-{node}-linux-x64.tar.gz'
+    req = urllib.request.urlopen(url)
+    h = hashlib.file_digest(req, 'sha256')
+
+    _replace_args(NODE=node, NODE_SHA256=h.hexdigest())
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('target', choices=('node',))
+    args = parser.parse_args()
+
+    return {'node': _update_node}[args.target]()
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())
