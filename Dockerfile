@@ -106,12 +106,12 @@ RUN echo 'end: minimal'
 
 FROM minimal AS final
 
-ARG NODE=24.15.0
-ARG NODE_SHA256=44836872d9aec49f1e6b52a9a922872db9a2b02d235a616a5681b6a85fec8d89
+ARG NODE=v24.18.0
+ARG NODE_SHA256=783130984963db7ba9cbd01089eaf2c2efb055c7c1693c943174b967b3050cb8
 ENV PATH=/opt/node/bin:$PATH
 RUN : \
     && echo 'lang: node' \
-    && curl --silent --location --output /tmp/node.tar.gz "https://nodejs.org/dist/v${NODE}/node-v${NODE}-linux-x64.tar.gz" \
+    && curl --silent --location --output /tmp/node.tar.gz "https://nodejs.org/dist/${NODE}/node-${NODE}-linux-x64.tar.gz" \
     && echo "${NODE_SHA256}  /tmp/node.tar.gz" | sha256sum --check \
     && mkdir /opt/node \
     && tar --strip-components 1 --directory /opt/node -xf /tmp/node.tar.gz \
