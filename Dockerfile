@@ -118,6 +118,33 @@ RUN : \
     && rm /tmp/node.tar.gz \
     && :
 
+ARG HASKELL_GHC=9.14.1
+ARG HASKELL_CABAL=3.18.1.0
+ENV \
+    BOOTSTRAP_HASKELL_ADJUST_CABAL_CONFIG=yes \
+    BOOTSTRAP_HASKELL_GHC_VERSION=0 \
+    BOOTSTRAP_HASKELL_INSTALL_NO_STACK=yes \
+    BOOTSTRAP_HASKELL_MINIMAL=1 \
+    BOOTSTRAP_HASKELL_NONINTERACTIVE=1 \
+    CABAL_DIR=/tmp/cabal \
+    GHCUP_INSTALL_BASE_PREFIX=/opt/haskell \
+    PATH=/opt/haskell/.ghcup/bin:$PATH
+RUN : \
+    && echo 'lang: haskell' \
+    && apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        gpg \
+        gpg-agent \
+        libgmp-dev \
+        libncurses-dev \
+        xz-utils \
+    && curl --proto '=https' --tlsv1.2 --silent --show-error --fail https://get-ghcup.haskell.org | sh \
+    && ghcup install ghc "$HASKELL_GHC" --set \
+    && ghcup install cabal "$HASKELL_CABAL" --set \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && :
+
 ARG RUST=1.89.0
 ARG RUSTUP_SHA256=c8d03f559a2335693379e1d3eaee76622b2a6580807e63bcd61faea709b9f664
 ARG RUSTUP_VERSION=1.28.0
