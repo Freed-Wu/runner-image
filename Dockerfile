@@ -14,6 +14,7 @@ RUN : \
         gcc \
         git \
         gnupg2 \
+        gpg-agent \
         libblas3 \
         libc6 \
         libedit2 \
@@ -21,6 +22,7 @@ RUN : \
         libfile-homedir-perl \
         libgcc1 \
         libgdiplus \
+        libgmp-dev \
         libgssapi-krb5-2 \
         libicu74 \
         liblapack3 \
@@ -36,6 +38,7 @@ RUN : \
         ruby-dev \
         unzip \
         xdg-user-dirs \
+        xz-utils \
         zlib1g \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
@@ -116,6 +119,24 @@ RUN : \
     && mkdir /opt/node \
     && tar --strip-components 1 --directory /opt/node -xf /tmp/node.tar.gz \
     && rm /tmp/node.tar.gz \
+    && :
+
+ARG HASKELL_GHC=9.14.1
+ARG HASKELL_CABAL=3.18.1.0
+ENV \
+    BOOTSTRAP_HASKELL_ADJUST_CABAL_CONFIG=yes \
+    BOOTSTRAP_HASKELL_GHC_VERSION=0 \
+    BOOTSTRAP_HASKELL_INSTALL_NO_STACK=yes \
+    BOOTSTRAP_HASKELL_MINIMAL=1 \
+    BOOTSTRAP_HASKELL_NONINTERACTIVE=1 \
+    CABAL_DIR=/tmp/cabal \
+    GHCUP_INSTALL_BASE_PREFIX=/opt/haskell \
+    PATH=/opt/haskell/.ghcup/bin:$PATH
+RUN : \
+    && echo 'lang: haskell' \
+    && curl --proto '=https' --tlsv1.2 --silent --show-error --fail https://get-ghcup.haskell.org | sh \
+    && ghcup install ghc "$HASKELL_GHC" --set \
+    && ghcup install cabal "$HASKELL_CABAL" --set \
     && :
 
 ARG RUST=1.89.0
